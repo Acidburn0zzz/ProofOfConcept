@@ -1,0 +1,41 @@
+Links:
+
+* FFI
+
+  This helps load C functions from Ruby code
+
+  https://apps.ubuntu.com/cat/applications/ruby-ffi/
+  https://github.com//ffi/ffi
+
+
+* Writing DSL in Ruby
+
+  Kind of pseudo language that will be translated in Ruby on run time.
+  Could be interesting if we plan later to create our own language for this project.
+
+  http://engineering.zenpayroll.com/benefits-of-writing-a-dsl/
+
+
+* Ruby module load
+
+  http://www.justskins.com/forums/problem-dynamically-loading-a-102089.html
+
+
+* Autocode
+
+  Load several modules/classes at once in sub folders like a MVC framework will do
+
+  https://github.com/waves/autocode/blob/master/lib/autocode.rb
+
+
+* Differences between Include/Load/Require/Extend
+
+  http://ionrails.com/2009/09/19/ruby_require-vs-load-vs-include-vs-extend/
+
+
+* Anonymous Modules/Classes/Methods in Ruby
+
+  Second link (rubymonk) also explains how Sinatra/Grape implemented helpers
+
+  http://www.intridea.com/blog/2012/2/13/using-anonymous-classes-and-modules-in-ruby
+  http://rubymonk.com/learning/books/2-metaprogramming-ruby/chapters/25-dynamic-methods/lessons/72-define-method
