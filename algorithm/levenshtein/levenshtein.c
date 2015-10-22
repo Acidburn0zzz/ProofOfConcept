@@ -7,6 +7,8 @@
 /* Amina Ourouba						      */
 /*--------------------------------------------------------------------*/
 
+#include <string.h>
+#include <stdint.h>
 #include "levenshtein.h"
 
 int	levenshtein(char *string1, char *string2)

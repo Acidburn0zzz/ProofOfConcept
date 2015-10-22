@@ -1,23 +1,19 @@
-
 CC	=	gcc
 RM	=	rm -f
-NAME	=	levenshtein
-OBJS	=	$(SRCS:.c=.o)
+LIB_NAME=	algorithms.so
 
-SRCS	=	levenshtein.c \
-		main.c
+SRCS	=	levenshtein.c
 
-CFLAGS	+=	-std=c99
+CFLAGS	+=	-std=c99 -Wall -Wextra -fmax-errors=2
 
-all:		$(NAME)
+all:		$(LIB_NAME)
 
-$(NAME):	$(OBJS)
-		$(CC) $(CFLAGS) $(OBJS) -o $(NAME) 
+$(LIB_NAME):	
+		$(CC) -shared -o $(LIB_NAME) -fPIC $(SRCS) $(CFLAGS)
 
 clean:
-		$(RM) $(OBJS)
-
-fclean:		clean
-		$(RM) $(NAME)
+		$(RM) $(LIB_NAME)
 
 re:		fclean all
+
+.PHONY:		all clean re

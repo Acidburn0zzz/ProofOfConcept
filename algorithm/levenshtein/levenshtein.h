@@ -1,10 +1,5 @@
-
 #ifndef LEVENSHTEIN_H_
 # define LEVENSHTEIN_H_
-
-#include "main.h"
-#include <string.h>
-#include <stdint.h>
 
 #define MAXWORD 256
 
