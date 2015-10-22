@@ -2,7 +2,7 @@
 
 require 'thread'
 require './communicationInterThread.rb'
-require './moduleAnalyse.rb'
+require './fakeModuleAnalyse.rb'
 
 if __FILE__ == $0
 	q = Queue.new
