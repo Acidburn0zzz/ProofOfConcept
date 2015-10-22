@@ -8,6 +8,7 @@ RM =		rm -f
 
 CFLAGS +=	-Wextra -Wall -Werror
 CFLAGS +=	-pedantic -std=gnu99
+CGLAGS +=	-fmax-errors=2
 CFLAGS +=	-I./includes \
 		-I./message_digest \
 		-I./compare \

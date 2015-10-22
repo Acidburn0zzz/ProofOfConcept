@@ -4,7 +4,12 @@ LIB_NAME=	algorithms.so
 
 SRCS	=	levenshtein.c
 
-CFLAGS	+=	-std=c99 -Wall -Wextra -fmax-errors=2
+CFLAGS +=	-Wextra -Wall -Werror
+CFLAGS +=	-pedantic -std=gnu99
+
+CFLAGS +=	-Wextra -Wall -Werror
+CFLAGS +=	-pedantic -std=gnu99
+CGLAGS +=	-fmax-errors=2
 
 all:		$(LIB_NAME)
 
@@ -14,6 +19,6 @@ $(LIB_NAME):
 clean:
 		$(RM) $(LIB_NAME)
 
-re:		fclean all
+re:		clean all
 
 .PHONY:		all clean re
