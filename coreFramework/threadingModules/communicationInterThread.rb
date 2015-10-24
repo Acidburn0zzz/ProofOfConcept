@@ -13,14 +13,6 @@
     @@errorMsgIndispSlot = "Asked slot isn't available for this channel."
 
     def initialize (queue, channel, threadType=:master)
-
-      #puts "-----------------------------------------------------------"
-
-      #puts "channel available ? #{isAvailableChannel? channel}"
-      #puts "channel full ? #{isFullChannel? channel}"
-      #puts "slot available ? #{isAvailableSlot?(channel, threadType)}"
-
-
       @@channelSchedule[channel] = [] if isAvailableChannel? channel
       raise @@errorMsgFullChan if isFullChannel? channel
       raise @@errorMsgIndispSlot if !isAvailableSlot?(channel, threadType)
@@ -37,8 +29,8 @@
     def initHandler (&block)
       return if @sigSender.nil?
       Signal.trap(getSenderSignal) do
-          block.call if @queue.pop == @channel
-        end
+        block.call if @queue.pop == @channel
+      end
     end
 
     def send (*args)
@@ -53,7 +45,7 @@
 
     def displayChannelList
       @@channelSchedule.each do |channel, slots|
-        puts "n°#{channel} -> #{slots}"
+        puts "Channel:\t#{channel} -> #{slots}"
       end
     end
 

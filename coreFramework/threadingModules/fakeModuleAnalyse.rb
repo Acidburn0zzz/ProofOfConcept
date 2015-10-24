@@ -1,29 +1,32 @@
 #!/usr/bin/ruby
 
+require 'colorize'
 require './communicationInterThread.rb'
+
 
 class ModuleAnalyse
 
 	@@nbMA = 0
 
 	def initialize (queue)
-		@@nbMA += 1
-		@myNb = @@nbMA
-		puts "start module analyse nb #{@myNb}"
+          @myNb = @@nbMA
+          puts "Analyse module number #{@myNb} initialization.".red
     
     	@queue = queue
-    	@cit = CIT.new(@queue , 2, :slave)
+    	@cit = CIT.new(@queue , @myNb, :slave)
     	@cit.initHandler {
-    		puts "slave n°#{@myNb} receive: #{@queue.pop}"
-    		@cit.send "coucou"
+            puts "(chan#{@cit.channel}/#{@cit.threadType}) Analyse module number #{@myNb}, receive: #{@queue.pop}".green
     	}
+          @@nbMA += 1
 	end
 
-  def run
-    puts "hey ! I run !"
-    sleep 5
-    puts "byebye"
-    @cit.deleteChannel
-  end
+
+
+        def run
+          puts "Analyse module number #{@myNb} start running for 10s.".red
+          sleep 2
+          puts "Analyse module number #{@myNb} stop.".red
+          @cit.deleteChannel
+        end
 
 end
