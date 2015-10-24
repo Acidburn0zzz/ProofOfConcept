@@ -1,0 +1,33 @@
+##
+## Unix commands
+##
+CC	=	gcc
+RM	=	rm -rf
+MKDIR	=	mkdir -p
+
+##
+## compilation paths
+##
+LIB_NAME=	./libs/algorithms.so
+SRCS	=	./levenshtein/levenshtein.c
+LIB_DIRECTORY=	./libs
+
+##
+## complation flags
+##
+CFLAGS +=	-Wextra -Wall -Werror
+CFLAGS +=	-pedantic -std=gnu99
+CFLAGS +=	-fmax-errors=2
+
+all:		$(LIB_NAME)
+
+$(LIB_NAME):
+		$(MKDIR) $(LIB_DIRECTORY)
+		$(CC) -shared -o $(LIB_NAME) -fPIC $(SRCS) $(CFLAGS)
+
+clean:
+		$(RM) $(LIB_DIRECTORY)
+
+re:		clean all
+
+.PHONY:		all clean re

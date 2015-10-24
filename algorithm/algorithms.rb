@@ -2,7 +2,7 @@ require 'ffi'
 
 module Algorithms
   extend FFI::Library
-  ffi_lib './algorithms.so'
+  ffi_lib './libs/algorithms.so'
   attach_function :levenshtein, [:string, :string], :int
 end
 
