@@ -1,34 +1,64 @@
 #!/usr/bin/ruby
 
 require 'thread'
+require 'colorize'
 require './communicationInterThread.rb'
 require './fakeModuleAnalyse.rb'
 
+class Core
+
+  @@amCpt = 0 # Analyse Modules cpt
+  @@allAm = {} # All Analyse Modules
+
+  def initialize
+    @@allAm = {}
+  end
+
+  def startAnalyseModule
+    @@allAm[@@amCpt.to_s] = {
+      "Queue" => nil,
+      "MA" => nil,
+      "CIT" => nil,
+      "Thread" => nil
+    }
+
+    strAmCpt = @@amCpt.to_s
+
+    @@allAm[strAmCpt]["Queue"] = Queue.new
+    @@allAm[strAmCpt]["MA"] = ModuleAnalyse.new @@allAm[strAmCpt]["Queue"]
+
+    @@allAm[strAmCpt]["CIT"] = CIT.new(@@allAm[strAmCpt]["Queue"] , @@amCpt, :master)
+    @@allAm[strAmCpt]["CIT"].initHandler {
+      puts "master receive"
+      #puts "master receive: #{@@allAm[strAmCpt]["Queue"].pop[0]}"
+    }
+
+    maInstance = @@allAm[strAmCpt]["MA"]
+    @@allAm[strAmCpt]["Thread"] = Thread.new {
+      maInstance.run
+    }
+
+    @@amCpt += 1
+  end
+
+  def sendToAnalyseModule (analyseModuleNb, *args)
+    @@allAm[analyseModuleNb.to_s]["CIT"].send("toto")
+  end
+
+  def joinAll
+    @@allAm.each do |key, array|
+      array["Thread"].join
+    end
+  end
+
+end
+
 if __FILE__ == $0
-	q = Queue.new
+  fakeCore = Core.new
 
-	ma1 = ModuleAnalyse.new q
-	#ma2 = ModuleAnalyse.new q
+  fakeCore.startAnalyseModule
 
-	cit = CIT.new(q , 2, :master)
-	cit.initHandler {puts "master receive: #{q.pop[0]}"}
+  fakeCore.sendToAnalyseModule(0, "toto")
 
-
-	t1 = Thread.new { ma1.run }
-	#t2 = Thread.new { ma2.run }
-
-	sleep 1
-	
-	1.times do
-		cit.send({"toto" => 25, "titi" => 42}, 3)
-	end
-
-	cit.initHandler {puts "master receiveddd: #{q.pop[0]}"}
-
-	cit.send({"toto" => 25, "titi" => 42}, 3)
-
-	t1.join
-	#t2.join
-
-	cit.displayChannelList
+  fakeCore.joinAll
 end
