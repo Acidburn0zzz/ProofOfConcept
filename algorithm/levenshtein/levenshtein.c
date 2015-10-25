@@ -11,28 +11,31 @@
 #include <stdint.h>
 #include "levenshtein.h"
 
-int	levenshtein(char *string1, char *string2)
+int			levenshtein(char *string1, char *string2)
 {
-  int32_t	firstWord = strlen(string1);
-  int32_t	secondWord = strlen(string2);
-  int32_t	matrice[MAXWORD][MAXWORD];
-  int32_t	i = 0;
-  int32_t	j = 0;
+  int32_t		firstWord = strlen(string1);
+  int32_t		secondWord = strlen(string2);
+  static int32_t	matrice[MAXWORD][MAXWORD];
+  static bool_t		hasBeenInit = FALSE;
+  int32_t		i = 0;
+  int32_t		j = 0;
 
-  /* Il faudrait le faire 1 seule fois */  
-  while (i < MAXWORD)
+  if (hasBeenInit == FALSE)
     {
-      matrice[i][0] = i;
-      matrice[0][i] = i;
-      i++;
+      while (i < MAXWORD)
+	{
+	  matrice[i][0] = i;
+	  matrice[0][i] = i;
+	  i++;
+	}
+      hasBeenInit = TRUE;
     }
-  /**************************************/
 
   /* algo complet */
   i = 1;
-  j = 1;
   while (i < firstWord+1) 
     {
+      j = 1;
       while (j < secondWord+1) 
 	{
 	  if (string1[i-1] == string2[j-1])
@@ -46,7 +49,6 @@ int	levenshtein(char *string1, char *string2)
 	  j++;
 	}
       i++;
-      j = 1;
     }
   return (matrice[firstWord][secondWord]);
 }
