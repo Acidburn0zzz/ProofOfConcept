@@ -128,6 +128,7 @@ fakeModule1 =
     end
   }
 end"
+db_conn = Struct.new(:ip, :port).new("0.0.0.0", "42")
 f_m1 = ModuleLoader.new(db_conn).build(fakeModule1)
 puts f_m1.__cp_name
 f_m1.__cp_run
