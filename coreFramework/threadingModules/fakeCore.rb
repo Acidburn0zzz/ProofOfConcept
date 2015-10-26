@@ -2,63 +2,53 @@
 
 require 'thread'
 require 'colorize'
-require './communicationInterThread.rb'
-require './fakeModuleAnalyse.rb'
+require './fakeAnalyseModule.rb'
+require './fakeGraphicalModule.rb'
+require './masterCIT.rb'
 
 class Core
+	def initialize
+		@gQueue = Queue.new
+		@aQueue = Queue.new
 
-  @@amCpt = 0 # Analyse Modules cpt
-  @@allAm = {} # All Analyse Modules
+		@gModule = GraphicalModule.new @gQueue
+		@aModule = AnalyseModule.new @aQueue
 
-  def initialize
-    @@allAm = {}
-  end
+		@gThread = Thread.new {@gModule.run}
+		@aThread = Thread.new {@aModule.run}
 
-  def startAnalyseModule
-    @@allAm[@@amCpt.to_s] = {
-      "Queue" => nil,
-      "MA" => nil,
-      "CIT" => nil,
-      "Thread" => nil
-    }
+		@masterCIT = MasterCIT.new(@gQueue, @aQueue)
+	end
 
-    strAmCpt = @@amCpt.to_s
 
-    @@allAm[strAmCpt]["Queue"] = Queue.new
-    @@allAm[strAmCpt]["MA"] = ModuleAnalyse.new @@allAm[strAmCpt]["Queue"]
+	def sayHelloToSlavesThreads
+		sleep 1
+		@masterCIT.send(GRAPHICAL, "Hello graphical module !")
+		@masterCIT.send(ANALYSE, "Hello analyse module !")
+	end
 
-    @@allAm[strAmCpt]["CIT"] = CIT.new(@@allAm[strAmCpt]["Queue"] , @@amCpt, :master)
-    @@allAm[strAmCpt]["CIT"].initHandler {
-      puts "master receive"
-      #puts "master receive: #{@@allAm[strAmCpt]["Queue"].pop[0]}"
-    }
+	def run
+		sleep 1
+		5.times do
+			sleep 1
+			rGraphic = @masterCIT.receive(GRAPHICAL)
+			rAnalyse = @masterCIT.receive(ANALYSE)
+			puts "(Core) Object receive msg from GRAPHICAL module: #{rGraphic}".blue if !rGraphic.empty?
+			puts "(Core) Object receive msg from ANALYSE module: #{rAnalyse}".blue if !rAnalyse.empty?
+		end
+	end
 
-    maInstance = @@allAm[strAmCpt]["MA"]
-    @@allAm[strAmCpt]["Thread"] = Thread.new {
-      maInstance.run
-    }
-
-    @@amCpt += 1
-  end
-
-  def sendToAnalyseModule (analyseModuleNb, *args)
-    @@allAm[analyseModuleNb.to_s]["CIT"].send("toto")
-  end
-
-  def joinAll
-    @@allAm.each do |key, array|
-      array["Thread"].join
-    end
-  end
+	def joinThreads
+		@gThread.join
+		@aThread.join
+	end
 
 end
 
 if __FILE__ == $0
-  fakeCore = Core.new
+	core = Core.new
 
-  fakeCore.startAnalyseModule
+	core.sayHelloToSlavesThreads
 
-  fakeCore.sendToAnalyseModule(0, "toto")
-
-  fakeCore.joinAll
+	core.run
 end
