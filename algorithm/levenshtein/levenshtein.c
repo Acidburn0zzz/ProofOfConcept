@@ -31,9 +31,9 @@ int			levenshtein(char *str1, char *str2)
     }
 
   /* algo complet */
-  for (i = 0; i < str1[i]; i++) 
+  for (i = 0; str1[i]; i++) 
     {
-      for (j = 0; j < str2[j]; j++) 
+      for (j = 0; str2[j]; j++) 
 	{
 	  if (str1[i] == str2[j])
 	    matrice[i + 1][j + 1] = matrice[i][j];

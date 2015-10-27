@@ -6,4 +6,4 @@ module Algorithms
   attach_function :levenshtein, [:string, :string], :int
 end
 
-puts "Levenshtein distance of 'chien' and 'niche' = #{Algorithms.levenshtein("chien", "niche")}"
+puts "Levenshtein distance of 'chiens' and 'niche' = #{Algorithms.levenshtein("chiens", "niche")}"
