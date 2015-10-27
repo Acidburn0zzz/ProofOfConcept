@@ -5,16 +5,15 @@
 /* developed by :						      */
 /* Edouard Marechal						      */
 /* Amina Ourouba						      */
+/* Jeremy Pouyet						      */
 /*--------------------------------------------------------------------*/
 
 #include <string.h>
 #include <stdint.h>
 #include "levenshtein.h"
 
-int			levenshtein(char *string1, char *string2)
+int			levenshtein(char *str1, char *str2)
 {
-  int32_t		firstWord = strlen(string1);
-  int32_t		secondWord = strlen(string2);
   static int32_t	matrice[MAXWORD][MAXWORD];
   static bool_t		hasBeenInit = FALSE;
   int32_t		i = 0;
@@ -26,29 +25,25 @@ int			levenshtein(char *string1, char *string2)
 	{
 	  matrice[i][0] = i;
 	  matrice[0][i] = i;
-	  i++;
+	  ++i;
 	}
       hasBeenInit = TRUE;
     }
 
   /* algo complet */
-  i = 1;
-  while (i < firstWord+1) 
+  for (i = 0; i < str1[i]; i++) 
     {
-      j = 1;
-      while (j < secondWord+1) 
+      for (j = 0; j < str2[j]; j++) 
 	{
-	  if (string1[i-1] == string2[j-1])
-	    matrice[i][j] = matrice[i-1][j-1];
-	  else if (matrice[i-1][j] <= matrice[i][j-1] && matrice[i-1][j] <= matrice[i-1][j-1])
-	    matrice[i][j] = matrice[i-1][j] + 1;
-	  else if (matrice[i][j-1] < matrice[i-1][j] && matrice[i][j-1] < matrice[i-1][j-1])
-	    matrice[i][j] = matrice[i][j-1] + 1;
+	  if (str1[i] == str2[j])
+	    matrice[i + 1][j + 1] = matrice[i][j];
+	  else if (matrice[i][j + 1] <= matrice[i + 1][j] && matrice[i][j + 1] <= matrice[i][j])
+	    matrice[i + 1][j + 1] = matrice[i][j + 1] + 1;
+	  else if (matrice[i + 1][j] < matrice[i][j + 1] && matrice[i + 1][j] < matrice[i][j])
+	    matrice[i + 1][j + 1] = matrice[i + 1][j] + 1;
 	  else
-	    matrice[i][j] = matrice[i-1][j-1] + 1;
-	  j++;
+	    matrice[i + 1][j + 1] = matrice[i][j] + 1;
 	}
-      i++;
     }
-  return (matrice[firstWord][secondWord]);
+  return matrice[i][j];
 }
