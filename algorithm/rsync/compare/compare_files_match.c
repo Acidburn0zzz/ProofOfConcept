@@ -118,11 +118,11 @@ static int8	get_files_compare_blocs(const char *path1, const char *path2, size_t
 #endif /* ONE_PER_ONE */
 
 #if defined(ONE_PER_ONE)
-static void print_key(char *key)
-{
-  for (int j = 0; j < MAX_CP_MD_LEN; j++)
-    CP_message_arg("%02x", key[j]);
-}
+/* static void print_key(char *key) */
+/* { */
+/*   for (int j = 0; j < MAX_CP_MD_LEN; j++) */
+/*     CP_message_arg("%02x", key[j]); */
+/* } */
 #endif /* ONE_PER_ONE */
 
 /*\* FUNCTIONS *\*/
@@ -150,17 +150,11 @@ int16	compare_files_match(const char *path1, const char *path2, size_t size_rd)
     }
 #if defined(ONE_PER_ONE)
   CP_message("Système de comparaison ficher par fichier\n");
-  if (ret = get_file_checksum(path1, sum1, size_rd) < 0
-      || ret = get_file_checksum(path2, sum2, size_rd) < 0)
+  if ((ret = get_file_checksum(path1, sum1, size_rd)) < 0
+      || (ret = get_file_checksum(path2, sum2, size_rd)) < 0)
     return ret;
   if (sum1[0] && sum2[0] && strncmp(sum1, sum2, MAX_CP_MD_LEN) == 0)
     {
-      CP_message("Compare keys:\n[");
-      print_key(sum1);
-      CP_message("]\n[");
-      print_key(sum2);
-      CP_message("]\n");
-
       CP_message("Les fichiers sont identiques\n");
       return RET_SUCCESS;
     }
@@ -169,4 +163,5 @@ int16	compare_files_match(const char *path1, const char *path2, size_t size_rd)
   CP_message("Système de comparaison bloc par bloc\n");
   return get_files_compare_blocs(path1, path2, size_rd);
 #endif /* ONE_PER_ONE */
+  return RET_FAILURE;
 }
