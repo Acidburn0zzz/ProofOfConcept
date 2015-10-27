@@ -11,7 +11,7 @@
 
 /*\* INCLUDES *\*/
 #include <stdlib.h>
-#include "byteorder.h"
+#include "cp_types.h"
 
 /*\* DEFINES *\*/
 #define SIZE_RD_CHAR 512
