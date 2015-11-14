@@ -12,18 +12,10 @@
 /*\* INCLUDES *\*/
 #include "copypeste.h"
 
-#if defined(MD5_OPENSSL)
-/* #include <openssl/ssl.h> */
 #include <openssl/md5.h>
-#endif /* MD5_OPENSSL */
-#include "mdigest.h"
 
 /*\* TYPEDEF *\*/
-#if defined(MD5_OPENSSL)
 typedef MD5_CTX cp_md5_ctx;
-#else
-typedef md_context cp_md5_ctx;
-#endif /* MD5_OPENSSL */
 
 /*\* DEFINES *\*/
 #define MAX_CP_MD_LEN 16

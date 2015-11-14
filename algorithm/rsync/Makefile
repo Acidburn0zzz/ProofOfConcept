@@ -8,11 +8,15 @@ RM =		rm -f
 
 CFLAGS +=	-Wextra -Wall -Werror
 CFLAGS +=	-pedantic -std=gnu99
-CGLAGS +=	-fmax-errors=2
+CFLAGS +=	-fmax-errors=2
 CFLAGS +=	-I./includes \
 		-I./message_digest \
 		-I./compare \
 		-I./errno_copypeste \
+
+CFLAGS +=	-DEN_MSG_ERROR # ENABLE MESSAGE ERROR
+
+MY_FLAGS =	-lcrypto # MD5
 
 NAME =		my_rsync
 
@@ -20,8 +24,6 @@ SRCS =		main.c \
 \
 		./compare/compare_files_match.c \
 \
-		./message_digest/mdfour.c \
-		./message_digest/md5.c \
 		./message_digest/cp_md5.c \
 
 OBJS =		$(SRCS:.c=.o)
@@ -30,14 +32,6 @@ all:		$(NAME)
 
 opo:		CFLAGS += -DONE_PER_ONE 
 opo:		$(NAME)
-
-md5:		CFLAGS += -DMD5_OPENSSL
-md5:		MY_FLAGS = -lssl -lcrypto
-md5:		$(NAME)
-
-opo_md5:	CFLAGS += -DMD5_OPENSSL -DONE_PER_ONE
-opo_md5:	MY_FLAGS = -lssl -lcrypto
-opo_md5:	$(NAME)
 
 $(NAME):	$(OBJS)
 		$(CC) $(OBJS) -o $(NAME) $(MY_FLAGS)
@@ -51,9 +45,5 @@ fclean:		clean
 re:		fclean all
 
 reopo:		fclean opo
-
-remd5:		fclean md5
-
-reopo_md5:	fclean opo_md5
 
 .PHONY:		all clean fclean re
