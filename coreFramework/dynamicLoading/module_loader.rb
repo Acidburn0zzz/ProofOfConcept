@@ -15,17 +15,17 @@ class CopyPeste
   # TEST
   def test_impl
     mod = ModuleLoading::Loader.load("fake_module1.rb", @db_wrap)
-    puts mod.name
-    puts mod.usage
-    puts mod.run
-    mod.save_object
+    puts mod.__cp_name__
+    puts mod.__cp_usage__
+    mod.__cp_run__
+    mod.save_something
   end
 
   module Database
     class Connection; end
     class Wrapper
       def initialize(*args) end
-      def save_object() puts "saved object in db" end # TEST
+      def save_something() puts "saved object in db" end # TEST
     end
   end
 
@@ -33,16 +33,22 @@ class CopyPeste
     class Loader
       # Turns a source file of an analysis module into a usable object
       #
+      # @param [String] path to the file
+      # @param [Database::Wrapper]
       # @return [LoadedModule]
-      #   instance of LoadedModule -(delegator of)- instance of LoadingModule
-      #   instance of LoadingModule -(extends dynamic module)- -(delegator of)- db_wrap
       def self.load(path, db_wrap)
         (@@mutex ||= Mutex.new).lock
 
-        @@loading_module = LoadingModule.new(db_wrap)
+        @@loading_module = LoadedModule.new(db_wrap)
         self.instance_eval(File.read path)
-        loaded_module = LoadedModule.new(@@loading_module)
 
+        required_methods = DSLMethods.instance_methods
+        implemented_methods = @@loading_module.singleton_methods
+        raise NotImplementedError unless required_methods.all? { |rm|
+          implemented_methods.include? self.naming_pattern(rm).to_sym
+        }
+
+        loaded_module = @@loading_module
         @@mutex.unlock
         loaded_module
       end
@@ -66,26 +72,32 @@ class CopyPeste
         @@loading_module.extend Module.new(&block)
       end
 
-      def method_missing(meth, *args, &block)
-        meth_suffix = meth.to_s.match(/^set_(.*)/)
-        return super if meth_suffix.nil?
-        meth_suffix = meth_suffix.captures.first
-        @@loading_module.define_singleton_method(meth_suffix, &block)
+      def self.naming_pattern(basename)
+        "__cp_#{basename}__"
       end
 
-      module DSL
+      def method_missing(meth, *args, &block)
+        meth_basename = meth.to_s.match(/^set_(.*)/)
+        return super(meth, *args, &block) if meth_basename.nil?
+        meth_basename = meth_basename.captures.first
+        @@loading_module.define_singleton_method(self.class.naming_pattern(meth_basename), &block)
+      end
+
+      module DSLMethods
         def usage(&block) set_usage(&block) end
         def author(&block) set_author(&block) end
         def run(&block) set_run(&block) end
-        def impl(&block) set_impl(&block) end
         def description(&block) set_description(&block) end
-      end # !DSL
+      end # !DSLMethods
 
-      include DSL
+      module DSLBlocks
+        def impl(&block) set_impl(&block) end
+      end # !DSLBlocks
+
+      include DSLMethods, DSLBlocks
     end
 
     class LoadedModule < SimpleDelegator; end
-    class LoadingModule < SimpleDelegator; end
   end
 
 end
