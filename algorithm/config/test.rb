@@ -12,7 +12,6 @@ fileAccess.addIgnoreExtension(".test2")
 fileAccess.addCompareExtension([".a", ".b"])
 fileAccess.affFile()
 
-fileAccess.deleteIgnoreFile("GemFile")
 fileAccess.deleteIgnoreFile("test")
 fileAccess.deleteIgnoreExtension("test2")
 

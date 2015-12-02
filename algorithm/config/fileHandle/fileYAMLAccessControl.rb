@@ -4,7 +4,7 @@ require './fileHandle/objectYAML'
 
 class FileYAMLAccessControl
 
-  def initialize(nameFile = "./config_load.yml")
+  def initialize(nameFile = "./file_cmp_config.yml")
     @NameFile = nameFile      
   end
 
