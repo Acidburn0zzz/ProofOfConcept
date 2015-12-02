@@ -23,9 +23,9 @@ class CompareObj
   end
 
   def addElements(arrayExtName)
-    @stringObj += "  - "
+    @stringObj += "  -\n"
     arrayExtName.each do |extName|
-      @stringObj += "    - " + extName + "\n"
+      @stringObj += "   - " + extName + "\n"
     end
   end
 end
