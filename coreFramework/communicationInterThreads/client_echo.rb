@@ -1,8 +1,8 @@
-# require 'celluloid/io'
+require 'celluloid/io'
 require 'celluloid/autostart'
 
 class ClientEcho
-  # include Celluloid::IO
+  include Celluloid::IO
 
   def initialize(socket)
     @socket = socket
