@@ -14,7 +14,7 @@ class SortByConfigFile
     newListPath = listPath.clone()
     getIgnoreFile().each do | ignoreFile |
       listPath.each do | path |
-        if path.include?(ignoreFile)
+        if path.match(ignoreFile + "$")
           newListPath.delete(path)
         end
       end
@@ -22,11 +22,11 @@ class SortByConfigFile
     return newListPath
   end
 
-  def getListSortWhitoutIgnoreExtension(listPath)
+  def getListSortWhitoutIgnoredExtension(listPath)
     newListPath = listPath.clone()
     getIgnoreExtension().each do | ignoreExt |
       listPath.each do | path |
-        if path.include?(ignoreExt)
+        if path.match(ignoreExt + "$")
           newListPath.delete(path)
         end
       end
@@ -35,7 +35,19 @@ class SortByConfigFile
   end
 
   def getListSortByCompareExtension(listPath)
-    
+    listContainPath = Array.new()
+    getCompareExtension().each do | compareExt |
+      newListPath = Array.new()
+      compareExt.each do | ext |
+        listPath.each do | path |
+          if path.match(ext + "$")
+            newListPath.push(path)
+          end
+        end
+      end
+      listContainPath.push(newListPath)
+    end
+    return listContainPath    
   end
 
   #/* Methodes to get elements */

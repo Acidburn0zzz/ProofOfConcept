@@ -3,11 +3,36 @@ require './SortByConfigFile.rb'
 
 def main(list)
 
+  puts "--- List ---"
+  puts list
+  puts "--- ---"
+
   sortByConfigFile = SortByConfigFile.new()
   puts sortByConfigFile.getIgnoreFile()
-  puts "--- Ignore File ---"
+
+  puts "--- Ignore File New List ---"
   puts sortByConfigFile.getListSortWhitoutIgnoredFiles(list)
+
+  puts "--- List ---"
   puts list
+  puts "--- ---"
+
+  puts "--- Ignore Extension New List ---"
+  puts sortByConfigFile.getListSortWhitoutIgnoredExtension(list)
+
+  puts "--- List ---"
+  puts list
+  puts "--- ---"
+
+  sortByConfigFile.addCompareExtension([".c", ".java"])
+  puts "--- List compare extension New List ---"
+  sortByConfigFile.getListSortByCompareExtension(list).each do | elem |
+    puts elem
+  end
+  puts "--- List ---"
+  puts list
+  puts "--- ---"
+
 end
 
 
