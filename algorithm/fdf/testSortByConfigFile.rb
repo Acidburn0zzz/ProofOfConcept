@@ -1,5 +1,9 @@
 
-require './SortByConfigFile.rb'
+require_relative './SortByConfigFile.rb'
+
+Given /^step woupi test$/ do
+  puts "salut"
+end
 
 def main(list)
 
