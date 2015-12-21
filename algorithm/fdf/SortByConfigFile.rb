@@ -1,21 +1,34 @@
 
-require '../config/fileHandler/fileYAMLAccessControl.rb'
+require_relative './../config/fileHandler/fileYAMLAccessControl.rb'
 
 class SortByConfigFile
   
-  def initialize()
-    @fileAccess = FileYAMLAccessControl.new()
-    @fileAccess.loadFile()
+  def initialize(nameFile = "./file_cmp_config.yml", fillIn = true)
+    @fileAccess = FileYAMLAccessControl.new(nameFile)
+    @fileAccess.loadFile(fillIn)
   end
 
+  def finish()
+    if !@fileAccess.nil?
+      @fileAccess.finish()
+    end
+  end
+
+  def deleteFile()
+    if !@fileAccess.nil?
+      @fileAccess.deleteFile()
+    end
+  end
 
   #/* Methodes to sort list */
   def getListSortWhitoutIgnoredFiles(listPath)
     newListPath = listPath.clone()
-    getIgnoreFile().each do | ignoreFile |
-      listPath.each do | path |
-        if path.match(ignoreFile + "$")
-          newListPath.delete(path)
+    if (!getIgnoreFile().nil?)
+      getIgnoreFile().each do | ignoreFile |
+        listPath.each do | path |
+          if !ignoreFile.nil? and path.match(ignoreFile + "$")
+            newListPath.delete(path)
+          end
         end
       end
     end
@@ -24,10 +37,12 @@ class SortByConfigFile
 
   def getListSortWhitoutIgnoredExtension(listPath)
     newListPath = listPath.clone()
-    getIgnoreExtension().each do | ignoreExt |
-      listPath.each do | path |
-        if path.match(ignoreExt + "$")
-          newListPath.delete(path)
+    if (!getIgnoreExtension().nil?)
+      getIgnoreExtension().each do | ignoreExt |
+        listPath.each do | path |
+          if !ignoreExt.nil? and path.match(ignoreExt + "$")
+            newListPath.delete(path)
+          end
         end
       end
     end
@@ -36,18 +51,20 @@ class SortByConfigFile
 
   def getListSortByCompareExtension(listPath)
     listContainPath = Array.new()
-    getCompareExtension().each do | compareExt |
-      newListPath = Array.new()
-      compareExt.each do | ext |
-        listPath.each do | path |
-          if path.match(ext + "$")
-            newListPath.push(path)
+    if (!getCompareExtension().nil?)
+      getCompareExtension().each do | compareExt |
+        containPath = Array.new()
+        compareExt.each do | ext |
+          listPath.each do | path |
+            if !ext.nil? and path.match(ext + "$")
+              containPath.push(path)
+            end
           end
         end
+        listContainPath.push(containPath)
       end
-      listContainPath.push(newListPath)
     end
-    return listContainPath    
+    return listContainPath
   end
 
   #/* Methodes to get elements */
@@ -60,6 +77,7 @@ class SortByConfigFile
   def getCompareExtension()
     return @fileAccess.getCompareExtension()
   end
+
   #/* Methodes to add */
   def addIgnoreFile(fileName)
     @fileAccess.addIgnoreFile(fileName)
@@ -70,6 +88,7 @@ class SortByConfigFile
   def addCompareExtension(extName)
     @fileAccess.addCompareExtension(extName)
   end
+
   #/* Methodes to delete */
   def deleteIgnoreFile(fileName)
     @fileAccess.deleteIgnoreFile(fileName)

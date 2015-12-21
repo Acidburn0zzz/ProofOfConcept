@@ -1,31 +1,45 @@
 
 require 'yaml'
-require '../config/fileHandler/objectYAML'
+require_relative 'objectYAML.rb'
 
 class FileYAMLAccessControl
 
-  def initialize(nameFile = "./file_cmp_config.yml")
-    @NameFile = nameFile      
+ def initialize(nameFile = "./file_cmp_config.yml")
+    @NameFile = File.expand_path(File.join(File.dirname(__FILE__), "../" + nameFile))
   end
 
-  def finish()
-      File.open(@NameFile, 'w') { |f|
-        YAML.dump(@LoadingFile, f)
-      }
+  def deleteFile()
+    File.delete(@NameFile) if File.exist?(@NameFile)
   end
   
-  def loadFile()
+  def finish()
+    if !@LoadingFile.nil?
+      File.open(@NameFile, 'w') do | f |
+        YAML.dump(@LoadingFile, f)
+      end
+    end
+  end
+  
+  def loadFile(fillIn = true)
     if !File.exists? (@NameFile)
       outFile = File.new(@NameFile, "w")
 
       ignore = IgnoreObj.new()
       files = FilesObj.new(ignore)
-      fillInExampleFile(ignore)
-      
+      if (fillIn)
+        fillInExampleFile(ignore)
+      else
+        fillInExampleFileEmpty(ignore)
+      end
+
       ignore = IgnoreObj.new()
       compare = CompareObj.new()
       extentions = ExtensionsObj.new(ignore, compare)
-      fillInExampleExt(ignore, compare)
+      if (fillIn)
+        fillInExampleExt(ignore, compare)
+      else
+        fillInExampleExtEmpty(ignore, compare)        
+      end
 
       global = Globalobj.new(files, extentions);
 
@@ -41,7 +55,7 @@ class FileYAMLAccessControl
       @IgnoreExt = @LoadingFile["extensions"]["ignore"]
       @CompareExt = @LoadingFile["extensions"]["compare"]
     rescue Exception => msg
-      puts "Error load: " + msg.to_s
+      STDERR.puts "Error load: " + msg.to_s
     end
   end
 
@@ -61,32 +75,41 @@ class FileYAMLAccessControl
   
   #/* Add elements */
   def addIgnoreFile(fileName)
-    if @IgnoreFile and !@IgnoreFile.include? fileName
+    if !@IgnoreFile.nil? and !@IgnoreFile.include? fileName
       @IgnoreFile.push(fileName)
-    elsif @IgnoreFile.include? fileName
-      puts "Error: '#{fileName}' already contained into '#{@NameFile}' 'compare extension'"
+      if @IgnoreFile[0] == nil
+        @IgnoreFile.delete_at(0)
+      end
+    elsif !@IgnoreFile.nil? and @IgnoreFile.include? fileName
+      STDERR.puts "Error: '#{fileName}' already contained into '#{@NameFile}' 'compare extension'"
     else
-      puts "Error: '#{@NameFile}' does not contain 'ignore file'"      
+      STDERR.puts "Error: '#{@NameFile}' does not contain 'ignore file'"      
     end
   end
 
   def addIgnoreExtension(extName)
-    if @IgnoreExt and !@IgnoreExt.include? extName
+    if !@IgnoreExt.nil? and !@IgnoreExt.include? extName
       @IgnoreExt.push(extName)
-    elsif @IgnoreExt.include? extName
-      puts "Error: '#{extName}' already contained into '#{@NameFile}' 'ignore extension'"
+      if @IgnoreExt[0] == nil
+        @IgnoreExt.delete_at(0)
+      end
+    elsif !@IgnoreExt.nil? and @IgnoreExt.include? extName
+      STDERR.puts "Error: '#{extName}' already contained into '#{@NameFile}' 'ignore extension'"
     else
-      puts "Error: '#{@NameFile}' does not contain 'ignore extension'"      
+      STDERR.puts "Error: '#{@NameFile}' does not contain 'ignore extension'"      
     end
   end
 
   def addCompareExtension(extName)
-    if @CompareExt and !@CompareExt.include? extName
+    if !@CompareExt.nil? and !@CompareExt.include? extName
       @CompareExt.push(extName)
-    elsif @CompareExt.include? extName
-      puts "Error: '#{extName}' already contained into '#{@NameFile}' 'compare extension'"
+      if @CompareExt[0] == nil
+        @CompareExt.delete_at(0)
+      end
+    elsif !@CompareExt.nil? and @CompareExt.include? extName
+      STDERR.puts "Error: '#{extName}' already contained into '#{@NameFile}' 'compare extension'"
     else
-      puts "Error: '#{@NameFile}' does not contain 'compare extension'"      
+      STDERR.puts "Error: '#{@NameFile}' does not contain 'compare extension'"      
     end
   end
 
@@ -95,7 +118,7 @@ class FileYAMLAccessControl
     if @IgnoreFile
       @IgnoreFile.delete(fileName)
     else
-      puts "Error: '#{@NameFile}' does not contain 'ignore file'"      
+      STDERR.puts "Error: '#{@NameFile}' does not contain 'ignore file'"      
     end
   end
 
@@ -103,7 +126,7 @@ class FileYAMLAccessControl
     if @IgnoreExt
       @IgnoreExt.delete(extName)
     else
-      puts "Error: '#{@NameFile}' does not contain 'ignore file'"      
+      STDERR.puts "Error: '#{@NameFile}' does not contain 'ignore file'"      
     end
   end
 
@@ -111,7 +134,7 @@ class FileYAMLAccessControl
     if @CompareExt
       @CompareExt.delete(extName)
     else
-      puts "Error: '#{@NameFile}' does not contain 'ignore file'"      
+      STDERR.puts "Error: '#{@NameFile}' does not contain 'ignore file'"      
     end
   end
 
@@ -133,8 +156,11 @@ class FileYAMLAccessControl
     ignore.addElement(".gitignore")
   end
 
-  def fillInExampleExt(ignore, compare)
+  def fillInExampleFileEmpty(ignore)
+    ignore.addElement("~")
+  end
 
+  def fillInExampleExt(ignore, compare)
     ignore.addElement(".trash")
     ignore.addElement(".old")
 
@@ -142,5 +168,8 @@ class FileYAMLAccessControl
     compare.addElements([".text", ".text.old", ".old"])
   end
 
-
+  def fillInExampleExtEmpty(ignore, compare)
+    ignore.addElement("~")
+    compare.addElements([])
+  end
 end
