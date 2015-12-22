@@ -15,7 +15,9 @@ class Core
     puts "(DEBUG)(Core) Server started."
     launch_ui("client_ui")
     puts "(DEBUG)(Core) UI started."
-    loop { sleep 1 }
+    while @server.running? do
+      sleep 0.5
+    end
   end
 
   private
@@ -57,9 +59,11 @@ class Core
 
     def run
       async.accept_loop
+      @running = true
     end
 
     def shutdown
+      @running = false
       @server.close if @server
     end
 
@@ -76,6 +80,10 @@ class Core
       socket.puts hello_string(role, name, key)
       puts "(DEBUG)(Core::Server#%s) Leaving method." % __callee__
       socket
+    end
+
+    def running?
+      @running
     end
 
     private
@@ -102,6 +110,7 @@ class Core
         else
           puts "(DEBUG)(Core::Server#%s) New connection has been regected." % __callee__
         end
+
       end
     end
 
@@ -113,28 +122,55 @@ class Core
         socket.wait_readable
         puts "(DEBUG)(Core::Server#%s) Readable OK." % __callee__
         # maybe something is still on the socket...
-        message = socket.gets
+        message = socket.gets.gsub("\n", "")
         puts "(DEBUG)(Core::Server#%s) Just got a message." % __callee__
-        match = message.match /^\/(?<cmd>\w) (?<arg>.*)$/
-        case match[:cmd]
-        when "say"
-          puts "(DEBUG)(Core::Server#%s) Command say." % __callee__
-          puts "(CORE::Server) Received '%s' from UI." % match[:arg]
-        when "launch"
-          puts "(DEBUG)(Core::Server#%s) Command launch." % __callee__
-          @thread_exec = Thread.new { ClientEcho.new @server.init_socket("exec", "echo") }
-        when "echo"
-          puts "(DEBUG)(Core::Server#%s) Command echo." % __callee__
-          socket_echo = @conn_mngr.get("exec")
-          next if socket_echo.nil?
-          socket_echo.puts match[:arg]
+        match = message.match /^\/(?<cmd>\w+)\s*(?<arg>.*)$/
+        puts "message: '#{message}', match: '#{match}'"
+        if match
+          case match[:cmd]
+          when "say"
+            puts "(DEBUG)(Core::Server#%s) Command say." % __callee__
+            puts "(CORE::Server) Received '%s' from UI." % match[:arg]
+          when "launch"
+            puts "(DEBUG)(Core::Server#%s) Command launch." % __callee__
+            @thread_exec = Thread.new { ClientEcho.new @server.init_socket("exec", "echo") }
+          when "echo"
+            puts "(DEBUG)(Core::Server#%s) Command echo." % __callee__
+            # socket_echo = @conn_mngr.get("exec") # Doesn't work anymore
+            next if socket_echo.nil?
+            socket_echo.puts match[:arg]
+          when "exit"
+            puts "(DEBUG)(Core::Server#%s) Command exit." % __callee__
+            exit
+          else
+            puts "(DEBUG)(Core::Server#%s) Received command '#{match[:cmd]}'." % __callee__
+          end
+
         else
           puts "(DEBUG)(Core::Server#%s) Something else." % __callee__
         end
+
       end
     end
 
     def handle_exec_connection(socket)
+    end
+
+    def exit
+      if @thread_ui
+        @thread_ui.kill
+        @socket_ui.close
+        @thread_ui.join
+      end
+
+      if @thread_exec
+        @thread_exec.kill
+        @socket_wr.kill
+        @thread_exec.join
+      end
+
+      @running = false
+      shutdown
     end
 
     class ConnectionManager
