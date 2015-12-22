@@ -1,0 +1,36 @@
+# Sample rake file for Copypeste
+
+require 'rubygems'
+
+# Simple message to describe the use of the command
+task :default do
+  abort '$rake [features | framework | algorithm]'
+end
+
+begin
+  require 'cucumber'
+  require 'cucumber/rake/task'
+
+  # Framework Task
+  Cucumber::Rake::Task.new(:framework) do |t|
+     t.cucumber_opts = "--format pretty
+     		       --require features features/feature_framework.feature
+     		       -r path_test/framework"
+  end
+
+  # Algorithm Task
+  Cucumber::Rake::Task.new(:algorithm) do |t|
+     t.cucumber_opts = "--format pretty
+     		       --require features features/feature_algorithm.feature
+     		       -r path_test/algorithm"
+  end
+
+  # Both
+  task :features => [:framework, :algorithm]
+
+rescue LoadError
+  desc 'Cucumber rake task not available'
+  task :features do
+    abort 'Cucumber rake task is not available. Be sure to install cucumber as a gem or plugin'
+  end
+end
