@@ -1,5 +1,6 @@
 
 # SortFile is use to sort any file by their extension and optionnal with their octe.
+# It take a array of file to sort, and a array of octe or nil
 # It will return an Hash with a tab for value {:c=>["path1/fichier1.c", "path8/fichier1.c"]} 
 # Or with octe it will return an Hash in a hash with a tab for value {:c=>{:"500"=>["path1/fichier1.c", "path8/fichier1.c"]}}
 
