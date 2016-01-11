@@ -20,7 +20,7 @@ LIB_DIRECTORY =	./libs
 ##
 CFLAGS +=	-Wextra -Wall -Werror
 CFLAGS +=	-pedantic -std=gnu99
-CFLAGS +=	-fmax-errors=2
+#CFLAGS +=	-fmax-errors=2 //bug sous OpendBsd
 
 CFLAGS +=	-I./rsync/includes \
 		-I./rsync/message_digest \
