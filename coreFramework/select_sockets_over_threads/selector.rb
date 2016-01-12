@@ -11,15 +11,54 @@ class Selector
     end
   end
 
-  # Creates a new stream from the IO and add it to the selector
+  # DEBUG
+  #
+  def status
+    "Streams:\n#{@streams.join} \n\n" +
+    "looking_to_read:\n#{@looking_to_read}\n\n" +
+    "looking_to_write:\n#{@looking_to_write}\n"
+  end
+
+  # Create a new stream from the IO and add it to the selector
   #
   # @param [IO] io
   # @return [Selector::Stream] the created one, or nil if already registered
   def register_io(io)
-    unless find_stream_from_io(io)
-      stream = Stream.new(io, self)
+    stream = Stream.new(io, self)
+    register_stream stream
+  end
+
+  # Tell if a stream is regsitered by the instance
+  #
+  # @param [Selector::Stream] stream
+  # @return [Boolean]
+  def registered?(stream)
+    @streams.include? stream
+  end
+
+  # Register the stream if its IO is not already registered
+  #
+  # @param [Selector::Stream] stream
+  # @return [Selector::Stream] param or nil if already registered
+  def register_stream(stream)
+    unless find_stream_from_io(stream.io)
       @streams << stream
       stream
+    end
+  end
+
+  # Unregister a stream from the instance.
+  # It will first stop the monitoring of events.
+  #
+  # @param [Selector::Stream] stream
+  def unregister_stream!(stream)
+    if registered? stream
+      MONITORABLE_EVENT_TYPES.each do |event_type|
+        update_stream_monitoring_status(stream, event_type, false)
+      end
+
+      @streams.delete stream
+      nil
     end
   end
 
@@ -78,7 +117,6 @@ class Selector
         # associated callback
 
         read_events.each do |io|
-          puts "got something"
           stream = find_stream_from_io(io)
           action = (io.eof? rescue false) ? :close : :read
           stream.trigger_callback_for(action)
@@ -91,9 +129,6 @@ class Selector
         end
       end
 
-      puts "%s: 4" % __callee__
-
-      # first param was "stream", not "self", but doesn't make sense...
       yield(self, *args[1..-1]) if block_given?
     end
 
@@ -185,7 +220,16 @@ class Selector
     #
     # @return [String] nil if empty
     def dequeue
-      @buffer_of_writes.shift unless @buffer_of_writes.nil?
+      @buffer_of_reads.shift unless @buffer_of_reads.nil?
+    end
+
+    # Unregister the instance from its selector and close the IO.
+    #
+    # @example
+    #  stream = stream.close!
+    #  => nil
+    def close!
+      handle_close
     end
 
     private
@@ -222,6 +266,7 @@ class Selector
     def handle_read
       unless @cannot_read || @buffer_of_reads.nil?
         message = io.readline
+        puts "Got message '#{message}'."
         @buffer_of_reads << message
         nil
       end
@@ -237,6 +282,14 @@ class Selector
         stop_listening(:write) if @buffer_of_writes.empty?
         nil
       end
+    end
+
+    # Unregister the stream from the selector and close the IO.
+    #
+    def handle_close
+      @selector.unregister_stream!(self)
+      @io.close
+      nil
     end
   end # !Stream
 

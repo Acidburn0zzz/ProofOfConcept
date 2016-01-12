@@ -38,14 +38,19 @@ end
 # starting the monitoring of the stream
 client_stream.listen :read
 
-count = 0
-selector.loop(keep_running, client_stream) do |_, client_stream|
-  puts nil, "New loop round!"
-  count += 1
-  puts "#{count} % 2 = #{count % 2}"
-  if (count % 2).zero?
-    message = messages_to_send.shift
-    client_stream.queue message
-  end
-  puts "End of loop round"
+
+console_stream = selector.register_io STDIN
+console_stream.callback_for_read(client_stream) do |console_s, client_s|
+  message = console_s.io.readline
+  client_s.queue message
 end
+console_stream.listen :read
+
+count = 0
+selector.loop(keep_running) do |selector, *_|
+  puts nil, nil, nil, selector.status
+end
+client_stream = client_stream.close!
+
+sleep 2
+puts "Bye world"

@@ -60,5 +60,6 @@ server_stream.listen(:read)
 puts "Ok, looping now"
 # loop
 selector.loop(keep_running) do |selector|
-  puts nil, "New round loop.", "Activ sockets are:", activ_sockets
+  puts nil, nil, nil, nil, "New round loop.", "Activ sockets are:", activ_sockets
+  puts "Selector's status:", selector.status
 end
