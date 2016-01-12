@@ -41,7 +41,7 @@ client_stream.listen :read
 
 console_stream = selector.register_io STDIN
 console_stream.callback_for_read(client_stream) do |console_s, client_s|
-  message = console_s.io.readline
+  message = console_s.dequeue
   client_s.queue message
 end
 console_stream.listen :read
