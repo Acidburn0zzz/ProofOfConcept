@@ -1,11 +1,10 @@
-# require "thread"
-
 class Selector
   MONITORABLE_EVENT_TYPES = [:read, :write]
 
   def initialize(timeout = 1)
     @streams = []
     @timeout = timeout
+    @must_stop = false
     MONITORABLE_EVENT_TYPES.each do |event_type|
       self.instance_variable_set "@looking_to_#{event_type}", []
     end
@@ -28,7 +27,7 @@ class Selector
     register_stream stream
   end
 
-  # Tell if a stream is regsitered by the instance
+  # Tell if a stream is registered by the instance
   #
   # @param [Selector::Stream] stream
   # @return [Boolean]
@@ -58,8 +57,9 @@ class Selector
       end
 
       @streams.delete stream
-      nil
     end
+
+    nil
   end
 
   # Update the way to listen at events for a stream
@@ -89,23 +89,16 @@ class Selector
     nil
   end
 
-  # @TODO it seems that the boolean value apssed by reference isn't working that
-  #  much. Maybe try using lambdas?
-  #  http://ruby-doc.org/docs/ruby-doc-bundle/UsersGuide/rg/localvars.html
+  # Loop (until it must stop) over the 'select' method, calling the given block
+  # and triggering the callbacks associated to the registered streams in case
+  # of monitored events happen.
   #
-  # Loop until the first value passed is evaluated to false (or nil)
-  # over the 'select' method, calling the given block and trigger the callbacks
-  # associated to the registered streams in case of monitored events happen.
-  #
-  # @param [Boolean] running condition for the loop
-  #  Passed in the same array of the optional parameters, the original variable
-  #  value is used every round since arrays are passed by reference.
   # @param [Array] *args passed as parameters to the block
   # @param [Proc] block (optional) first parameter sent is the stream
   def loop(*args, &block)
-    return if args.size.zero? || (block_given? && block.arity.zero?)
+    return if block_given? && block.arity.zero?
 
-    while args.first
+    until @must_stop
       all_events = select(@looking_to_read, @looking_to_write, [], @timeout)
       # if events are registered
       unless all_events.nil?
@@ -118,27 +111,32 @@ class Selector
 
         read_events.each do |io|
           stream = find_stream_from_io(io)
-          action = (io.eof? rescue false) ? :close : :read
+          action = ( stream.can_accept? || !io.eof?) ? :read : :close
           stream.trigger_callback_for(action)
         end
 
         write_events.each do |io|
           stream = find_stream_from_io(io)
-          # action = io.eof? ? :close : :write
           stream.trigger_callback_for(:write)
         end
       end
 
-      yield(self, *args[1..-1]) if block_given?
+      yield(self, *args) if block_given?
     end
 
     nil
   end
 
+  # Change the loop condition to make it stop on its next iteration
+  #
+  def must_stop!
+    @must_stop = true
+  end
+
   class Stream
     CALLBACKABLE_EVENTS = (Selector::MONITORABLE_EVENT_TYPES << :close).uniq
 
-    attr_reader :io
+    attr_reader :io, :cannot_read
 
     # Initialize a new Selector::Stream object
     #
@@ -146,14 +144,26 @@ class Selector
     # @param [Selector] selector handling the stream
     def initialize(io, selector)
       @io, @selector = io, selector
+      @cannot_read = false
       CALLBACKABLE_EVENTS.each do |event_type|
         self.instance_variable_set "@on_#{event_type}", []
         self.instance_variable_set "@buffer_of_#{event_type}s", []
       end
     end
 
-    def cannot_read!
-      @cannot_read = true
+    # Make sure nothing will try to read on this instance
+    #
+    def is_accepting!
+      @is_accepting = true
+      nil
+    end
+
+    # Tell if the stream can still perform read actions or if it is
+    # performing accept() calls.
+    #
+    # @return [Boolean]
+    def can_accept?
+      @is_accepting
     end
 
     # Define the behavior to adopt on an event
@@ -212,8 +222,9 @@ class Selector
       unless @buffer_of_writes.nil?
         @buffer_of_writes << message
         @selector.listen(self, :write)
-        nil
       end
+
+      nil
     end
 
     # Retrieve the oldest element available from the read side of the io
@@ -249,7 +260,7 @@ class Selector
     # @param [Symbole] event_type
     def ensure_valid_event_type!(event_type)
       unless CALLBACKABLE_EVENTS.include? event_type
-        raise "Unvalid event type '#{event_type}' for '#{__callee__}'."
+        raise "Unvalid event type '#{event_type}'."
       end
     end
 
@@ -264,12 +275,12 @@ class Selector
     # Get line from the io and insert it back in the buffer of read messages
     #
     def handle_read
-      unless @cannot_read || @buffer_of_reads.nil?
+      unless @is_accepting || @buffer_of_reads.nil?
         message = io.readline
-        puts "Got message '#{message}'."
         @buffer_of_reads << message
-        nil
       end
+
+      nil
     end
 
     # Puts queued message in the io and unlisten
@@ -280,8 +291,9 @@ class Selector
         message = @buffer_of_writes.shift
         io.puts message
         stop_listening(:write) if @buffer_of_writes.empty?
-        nil
       end
+
+      nil
     end
 
     # Unregister the stream from the selector and close the IO.
@@ -347,7 +359,7 @@ class Selector
   # @param [Symbole] event_type
   def ensure_valid_event_type!(event_type)
     unless MONITORABLE_EVENT_TYPES.include? event_type
-      raise "Unvalid event type '#{event_type}' for '#{__callee__}'."
+      raise "Unvalid event type '#{event_type}'."
     end
   end
 end
